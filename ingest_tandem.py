@@ -76,7 +76,6 @@ def process_csv_file(file_path, series_id, conn):
     # Insert into series table and get the series_id
     cursor = conn.cursor()
     cursor.execute("INSERT INTO file (file_name, series_id) VALUES (?, ?)", (file_name, series_id))
-    series_id = cursor.lastrowid
     conn.commit()
     
     with open(file_path, 'r', encoding='utf-8') as csv_file:
@@ -203,7 +202,7 @@ def process_treatment_row(row, header, series_id, conn):
 def main():
     # Configuration
     db_name = "cgm.db"
-    csv_directory = "./input_data"
+    csv_directory = "./input_data/personal_data"
     
     # Create or connect to database
     conn = create_database(db_name)
