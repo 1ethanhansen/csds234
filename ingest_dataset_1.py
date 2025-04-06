@@ -25,8 +25,6 @@ def process_csv_file(file_path, series_id, conn):
         for row in csv_reader:
             if not row:  # Skip empty rows
                 continue
-
-            # print(row)
             
             # Try to detect if this is a new header row
             if any(keyword in ' '.join(row) for keyword in ["date", "time", "basal_rate", "bolus_volume_delivered", "glucose_level", "meal_kcal"]):
