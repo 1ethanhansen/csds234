@@ -6,6 +6,8 @@ import os
 import datetime
 from pathlib import Path
 
+# test comment 
+
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert data into SQLite database."""
     # Get just the filename without the path
