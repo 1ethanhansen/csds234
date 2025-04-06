@@ -8,7 +8,6 @@ def create_database(db_name):
     """Create SQLite database with the specified schema."""
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
-    
     # Create tables
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS series (
