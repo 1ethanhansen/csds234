@@ -5,12 +5,12 @@ import sqlite3
 import os
 import datetime
 from pathlib import Path
-# Test 
+
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert data into SQLite database."""
     # Get just the filename without the path
     file_name = os.path.basename(file_path)
-    # comment
+
     # Insert into series table and get the series_id
     cursor = conn.cursor()
     cursor.execute("INSERT INTO file (file_name, series_id) VALUES (?, ?)", (file_name, series_id))
