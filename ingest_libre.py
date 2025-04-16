@@ -49,7 +49,6 @@ def process_cgm_row(row, header, series_id, conn):
         # Extract data
         date_str = row[date_idx] if date_idx < len(row) else ""
         time_str = row[time_idx] if time_idx < len(row) else ""
-        ## Converts mmol/L to mg/dL
         glucose_lvl = row[glucose_idx] * 18 if glucose_idx < len(row) else ""
         
         if not date_str or not time_str or not glucose_lvl:
@@ -65,7 +64,7 @@ def process_cgm_row(row, header, series_id, conn):
         
         # Insert glucose data
         try:
-            glucose_lvl = float(glucose_lvl)
+            glucose_lvl = float(glucose_lvl) * 18 # Converts mmol/L to mg/dL
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
