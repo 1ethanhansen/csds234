@@ -44,10 +44,12 @@ def process_cgm_row(row, header, series_id, conn):
         date_idx = header.index("Date")
         time_idx = header.index("Time")
         glucose_idx = header.index("Glucose mmol/L")
-        
+        classification_idx = header.index("Classification")
+
         date_str = row[date_idx].strip()
         time_str = row[time_idx].strip()
         glucose_str = row[glucose_idx].strip()
+        classification_str = row[classification_idx].strip()
         # Extract data
         if not date_str or not time_str or not glucose_str:
             return
@@ -56,17 +58,23 @@ def process_cgm_row(row, header, series_id, conn):
         dt = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M")
         iso_datetime = dt.isoformat()
         # Convert mmol/L to mg/dL
-        blood_glucose = float(glucose_str) * 18.0156
+        blood_glucose = round(float(glucose_str) * 18.0156, 1)
 
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
-            (iso_datetime, series_id, blood_glucose)
+            "INSERT INTO cgm_data (datetime, series_id, blood_glucose, classification) VALUES (?, ?, ?, ?)",
+            (iso_datetime, series_id, blood_glucose, classification_str)
         )
         conn.commit()
     except (ValueError, IndexError):
         pass
 
+def column_exists(conn, table_name, column_name):
+    cursor = conn.cursor()
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    columns = [row[1] for row in cursor.fetchall()]
+    print(f" {column_name.lower() in [col.lower() for col in columns]}")
+    return column_name.lower() in [col.lower() for col in columns]
 
 def main():
     # Configuration
@@ -81,6 +89,11 @@ def main():
     cursor.execute("INSERT INTO series DEFAULT VALUES")
     series_id = cursor.lastrowid
     conn.commit()
+
+    # Create a column for Classification if it doesn't exist
+    if not column_exists(conn, "cgm_data", "classification"):
+        cursor.execute("ALTER TABLE cgm_data ADD COLUMN classification TEXT")
+        conn.commit()
 
     # Process CSV file in the directory
     for file in Path(csv_file_path).glob("*.csv"):
