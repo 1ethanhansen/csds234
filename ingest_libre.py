@@ -3,8 +3,13 @@
 import csv
 import sqlite3
 import os
-import datetime
+from datetime import datetime
 from pathlib import Path
+from itertools import islice
+
+def create_connection(db_name):
+    """Create a connection to the SQLite database."""
+    return sqlite3.connect(db_name)
 
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert data into SQLite database."""
@@ -19,22 +24,16 @@ def process_csv_file(file_path, series_id, conn):
     with open(file_path, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
 
-        current_format = ""
-        header = ""
+        header = None
         
         for row in csv_reader:
             if not row:  # Skip empty rows
                 continue
-
-            
-            # Try to detect if this is a new header row
-            if any(keyword in ' '.join(row) for keyword in ["date", "time", "basal_rate", "bolus_volume_delivered", "glucose_level", "meal_kcal"]):
+            # Detect header row
+            if "Time" in row and header is None:
                 header = row
-                if "Glucose mmol/L" in row:
-                    current_format = "cgm"
                 continue
-            
-            if current_format == "cgm":
+            if header: 
                 process_cgm_row(row, header, series_id, conn)
 
 def process_cgm_row(row, header, series_id, conn):
@@ -63,27 +62,24 @@ def process_cgm_row(row, header, series_id, conn):
         datetime_str = f"{date_str}T{time_str}"
         
         # Insert glucose data
-        try:
-            glucose_lvl = float(glucose_lvl) * 18 # Converts mmol/L to mg/dL
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
-                (datetime_str, series_id, glucose_lvl)
-            )
-            conn.commit()
-        except (ValueError, IndexError):
-            pass
+        glucose_lvl = float(glucose_lvl) * 18 # Converts mmol/L to mg/dL
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+        (datetime_str, series_id, glucose_lvl)
+        )
+        conn.commit()
             
-    except ValueError:
+    except (ValueError,IndexError):
         # If any column is not found, just skip this row
         pass
 
 def main():
     # Configuration
     db_name = "cgm.db"
-    csv_directory = "./input_data/libre_cgm_dataset"
+    csv_file_path = "./input_data/libre_cgm_dataset"
     
-    # Create or connect to database
+    # Connect to database
     conn = sqlite3.connect(db_name)
 
     # Insert into series table and get the series_id
@@ -93,17 +89,10 @@ def main():
     conn.commit()
     
     # Process all CSV files in the directory
-    csv_files = list(Path(csv_directory).glob("*.csv"))
+    for file in Path(csv_file_path).glob("*.csv"):
+        process_csv_file(str(file), series_id, conn)
     
-    if not csv_files:
-        print(f"No CSV files found in {csv_directory}")
-        return
-        
-    for csv_file in csv_files:
-        print(f"Processing {csv_file}...")
-        process_csv_file(str(csv_file), series_id, conn)
-        
-    print(f"Data has been imported into {db_name}")
+    print(f"Data from {csv_file_path} has been imported into {db_name}")
     conn.close()
 
 if __name__ == "__main__":
