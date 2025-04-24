@@ -56,7 +56,7 @@ def process_cgm_row(row, header, series_id, conn):
         dt = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M")
         iso_datetime = dt.isoformat()
         # Convert mmol/L to mg/dL
-        blood_glucose = round(float(glucose_str) * 18.0156, 1)
+        blood_glucose = round(float(glucose_str) * 18.018, 1)
 
         cursor = conn.cursor()
         cursor.execute(

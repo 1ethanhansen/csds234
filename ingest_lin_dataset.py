@@ -49,7 +49,7 @@ def process_glucose_row(row, header, series_id, conn):
         
         # Convert glucose from mmol/L to mg/dL
         try:
-            glucose_mgdl = float(glucose_value) * 18.0182
+            glucose_mgdl = round(float(glucose_value) * 18.018, 1)
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
@@ -68,8 +68,8 @@ def main():
     db_name = "cgm.db"
     csv_directory = "./input_data/lin_dataset"
     
-    # Create or connect to database
-    conn = create_database(db_name)
+    # Connect to database
+    conn = sqlite3.connect(db_name)
 
     # Insert into series table and get the series_id
     cursor = conn.cursor()
