@@ -58,7 +58,7 @@ def process_cgm_row(row, header, series_id, conn):
         datetime_str = f"{date_str}T{time_str}"
         
         # Insert glucose data
-        glucose_lvl = float(glucose_lvl) * 18 # Converts mmol/L to mg/dL
+        glucose_lvl = round(float(glucose_lvl) * 18.018, 1) # Converts mmol/L to mg/dL
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
