@@ -220,7 +220,7 @@ def main():
         print(f"Processing {csv_file}...")
         process_csv_file(str(csv_file), series_id, conn)
         
-    print(f"Data has been imported into {db_name}")
+    print(f"Data from {csv_directory} has been imported into {db_name}")
     conn.close()
 
 if __name__ == "__main__":
