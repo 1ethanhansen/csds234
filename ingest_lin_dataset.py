@@ -3,40 +3,6 @@ import sqlite3
 import os
 from pathlib import Path
 
-def create_database(db_name):
-    """Create SQLite database with the specified schema."""
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    
-    # Create tables (only what we need)
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS series (
-        series_id INTEGER PRIMARY KEY
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS file (
-        id INTEGER PRIMARY KEY,
-        file_name TEXT,
-        series_id INTEGER,
-        FOREIGN KEY (series_id) REFERENCES series (series_id)
-    )
-    ''')
-    
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS cgm_data (
-        id INTEGER PRIMARY KEY,
-        datetime TEXT,
-        series_id INTEGER,
-        blood_glucose REAL,
-        FOREIGN KEY (series_id) REFERENCES series (series_id)
-    )
-    ''')
-    
-    conn.commit()
-    return conn
-
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert glucose data into SQLite database."""
     file_name = os.path.basename(file_path)
