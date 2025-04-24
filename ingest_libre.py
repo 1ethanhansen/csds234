@@ -5,11 +5,6 @@ import sqlite3
 import os
 from datetime import datetime
 from pathlib import Path
-from itertools import islice
-
-def create_connection(db_name):
-    """Create a connection to the SQLite database."""
-    return sqlite3.connect(db_name)
 
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert data into SQLite database."""
@@ -30,9 +25,10 @@ def process_csv_file(file_path, series_id, conn):
             if not row:  # Skip empty rows
                 continue
             # Detect header row
-            if "Time" in row and header is None:
+            if header is None and 'Time' in row:
                 header = row
                 continue
+            
             if header: 
                 process_cgm_row(row, header, series_id, conn)
 
@@ -48,7 +44,7 @@ def process_cgm_row(row, header, series_id, conn):
         # Extract data
         date_str = row[date_idx] if date_idx < len(row) else ""
         time_str = row[time_idx] if time_idx < len(row) else ""
-        glucose_lvl = row[glucose_idx] * 18 if glucose_idx < len(row) else ""
+        glucose_lvl = row[glucose_idx] if glucose_idx < len(row) else ""
         
         if not date_str or not time_str or not glucose_lvl:
             return
@@ -66,7 +62,7 @@ def process_cgm_row(row, header, series_id, conn):
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
-        (datetime_str, series_id, glucose_lvl)
+            (datetime_str, series_id, glucose_lvl)
         )
         conn.commit()
             
