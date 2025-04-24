@@ -3,7 +3,7 @@ import sqlite3
 import os
 import datetime
 from pathlib import Path
-"Test 123 Hi"
+
 def create_database(db_name):
     """Create SQLite database with the specified schema."""
     conn = sqlite3.connect(db_name)
@@ -223,7 +223,7 @@ def main():
         print(f"Processing {csv_file}...")
         process_csv_file(str(csv_file), series_id, conn)
         
-    print(f"Data has been imported into {db_name}")
+    print(f"Data from {csv_directory} has been imported into {db_name}")
     conn.close()
 
 if __name__ == "__main__":
