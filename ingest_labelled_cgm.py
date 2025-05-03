@@ -1,3 +1,5 @@
+# Source for data: https://www.kaggle.com/datasets/anonymousfrog95/labelled-cgm-data-sample
+
 import csv
 import sqlite3
 import os

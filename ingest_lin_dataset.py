@@ -1,3 +1,5 @@
+# Source for data: https://www.kaggle.com/datasets/reneelinmedical/glucose-readings-from-cgm
+
 import csv
 import sqlite3
 import os
