@@ -1,4 +1,4 @@
-# source for data: https://www.kaggle.com/datasets/diabetes1123/diabetes-type-1-dataset?resource=download
+# Source for data: https://www.kaggle.com/datasets/diabetes1123/diabetes-type-1-dataset?resource=download
 
 import csv
 import sqlite3
