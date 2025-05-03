@@ -57,7 +57,7 @@ def process_glucose_row(row, header, series_id, conn):
             blood_glucose = float(glucose_value)
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
                 (iso_format, series_id, blood_glucose)
             )
             conn.commit()
