@@ -1,3 +1,5 @@
+# Source for data: https://www.kaggle.com/datasets/avibagul80/time-series-cgm-dataset?resource=download
+
 import csv
 import sqlite3
 import os
