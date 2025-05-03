@@ -6,12 +6,17 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+def format_time(input_date, input_time):
+    input_datetime = input_date + " " + input_time
+    dt = datetime.strptime(input_datetime, "%d/%m/%Y %H:%M")
+    return dt.isoformat()
+
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert data into SQLite database."""
     # Get just the filename without the path
     file_name = os.path.basename(file_path)
 
-    # Insert into series table and get the series_id
+    # Insert into series table
     cursor = conn.cursor()
     cursor.execute("INSERT INTO file (file_name, series_id) VALUES (?, ?)", (file_name, series_id))
     conn.commit()
@@ -48,20 +53,15 @@ def process_cgm_row(row, header, series_id, conn):
         
         if not date_str or not time_str or not glucose_lvl:
             return
-            
-        # Rearrange date string to match formatting
-        parts = date_str.split("/")
-        rearranged_date = f"{parts[2]}/{parts[0]}/{parts[1]}"
 
         # Combine date and time into datetime
-        date_str = rearranged_date.replace('/', '-')
-        datetime_str = f"{date_str}T{time_str}"
+        datetime_str = format_time(date_str, time_str)
         
         # Insert glucose data
         glucose_lvl = round(float(glucose_lvl) * 18.018, 1) # Converts mmol/L to mg/dL
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+            "INSERT OR IGNORE INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
             (datetime_str, series_id, glucose_lvl)
         )
         conn.commit()

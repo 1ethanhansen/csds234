@@ -60,7 +60,7 @@ def process_cgm_row(row, header, series_id, conn):
 
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+            "INSERT OR IGNORE INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
             (iso_datetime, series_id, blood_glucose)
         )
         conn.commit()
