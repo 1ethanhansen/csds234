@@ -3,8 +3,13 @@
 import csv
 import sqlite3
 import os
-import datetime
+from datetime import datetime
 from pathlib import Path
+
+def format_time(input_date, input_time):
+    input_datetime = input_date + " " + input_time
+    dt = datetime.strptime(input_datetime, "%Y/%m/%d %H:%M:%S")
+    return dt.isoformat()
 
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert data into SQLite database."""
@@ -15,7 +20,7 @@ def process_csv_file(file_path, series_id, conn):
     cursor = conn.cursor()
     cursor.execute("INSERT INTO file (file_name, series_id) VALUES (?, ?)", (file_name, series_id))
     conn.commit()
-    
+
     with open(file_path, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
 
@@ -67,15 +72,15 @@ def process_basal_row(row, header, series_id, conn):
             return
             
         # Combine date and time into datetime
-        date_str = date_str.replace('/', '-')
-        datetime_str = f"{date_str}T{time_str}"
+        datetime_str = format_time(date_str, time_str)
+        # print(datetime_str)
         
         # Insert basal data
         try:
             basal_amt = float(basal_rate)
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO basal_data (datetime, series_id, basal_amt) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO basal_data (datetime, series_id, basal_amt) VALUES (?, ?, ?)",
                 (datetime_str, series_id, basal_amt)
             )
             conn.commit()
@@ -104,15 +109,14 @@ def process_cgm_row(row, header, series_id, conn):
             return
             
         # Combine date and time into datetime
-        date_str = date_str.replace('/', '-')
-        datetime_str = f"{date_str}T{time_str}"
+        datetime_str = format_time(date_str, time_str)
         
         # Insert basal data
         try:
             glucose_lvl = float(glucose_lvl)
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
                 (datetime_str, series_id, glucose_lvl)
             )
             conn.commit()
@@ -140,15 +144,14 @@ def process_bolus_row(row, header, series_id, conn):
             return
             
         # Combine date and time into datetime
-        date_str = date_str.replace('/', '-')
-        datetime_str = f"{date_str}T{time_str}"
+        datetime_str = format_time(date_str, time_str)
         
         # Insert basal data
         try:
             unit_count = float(unit_count)
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO bolus_data (datetime, series_id, bolus_amt) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO bolus_data (datetime, series_id, bolus_amt) VALUES (?, ?, ?)",
                 (datetime_str, series_id, unit_count)
             )
             conn.commit()
@@ -176,15 +179,14 @@ def process_meal_row(row, header, series_id, conn):
             return
             
         # Combine date and time into datetime
-        date_str = date_str.replace('/', '-')
-        datetime_str = f"{date_str}T{time_str}"
+        datetime_str = format_time(date_str, time_str)
         
         # Insert basal data
         try:
             carb_count = float(meal_kcal) / 8 # we have to estimate kcal->grams carbs
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO food_data (datetime, series_id, carb_count) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO food_data (datetime, series_id, carb_count) VALUES (?, ?, ?)",
                 (datetime_str, series_id, carb_count)
             )
             conn.commit()

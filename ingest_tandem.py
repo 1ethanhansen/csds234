@@ -31,6 +31,7 @@ def create_database(db_name):
         series_id INTEGER,
         carb_count REAL,
         FOREIGN KEY (series_id) REFERENCES series (series_id)
+        UNIQUE(datetime, series_id)
     )
     ''')
     
@@ -40,7 +41,8 @@ def create_database(db_name):
         datetime TEXT,
         series_id INTEGER,
         blood_glucose REAL,
-        FOREIGN KEY (series_id) REFERENCES series (series_id)
+        FOREIGN KEY (series_id) REFERENCES series (series_id),
+        UNIQUE(datetime, series_id)
     )
     ''')
     
@@ -50,7 +52,8 @@ def create_database(db_name):
         datetime TEXT,
         series_id INTEGER,
         bolus_amt REAL,
-        FOREIGN KEY (series_id) REFERENCES series (series_id)
+        FOREIGN KEY (series_id) REFERENCES series (series_id),
+        UNIQUE(datetime, series_id)
     )
     ''')
     
@@ -60,7 +63,8 @@ def create_database(db_name):
         datetime TEXT,
         series_id INTEGER,
         basal_amt REAL,
-        FOREIGN KEY (series_id) REFERENCES series (series_id)
+        FOREIGN KEY (series_id) REFERENCES series (series_id),
+        UNIQUE(datetime, series_id)
     )
     ''')
     
@@ -120,7 +124,7 @@ def process_cgm_row(row, header, series_id, conn):
                 blood_glucose = float(row[readings_idx])
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+                    "INSERT OR IGNORE INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
                     (event_datetime, series_id, blood_glucose)
                 )
                 conn.commit()
@@ -158,7 +162,7 @@ def process_treatment_row(row, header, series_id, conn):
                 if insulin_delivered > 0:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "INSERT INTO bolus_data (datetime, series_id, bolus_amt) VALUES (?, ?, ?)",
+                        "INSERT OR IGNORE INTO bolus_data (datetime, series_id, bolus_amt) VALUES (?, ?, ?)",
                         (completion_datetime, series_id, insulin_delivered)
                     )
                     conn.commit()
@@ -173,7 +177,7 @@ def process_treatment_row(row, header, series_id, conn):
                 if carb_size > 0:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "INSERT INTO food_data (datetime, series_id, carb_count) VALUES (?, ?, ?)",
+                        "INSERT OR IGNORE INTO food_data (datetime, series_id, carb_count) VALUES (?, ?, ?)",
                         (completion_datetime, series_id, carb_size)
                     )
                     conn.commit()
@@ -187,7 +191,7 @@ def process_treatment_row(row, header, series_id, conn):
                 if basal_amt > 0:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "INSERT INTO basal_data (datetime, series_id, basal_amt) VALUES (?, ?, ?)",
+                        "INSERT OR IGNORE INTO basal_data (datetime, series_id, basal_amt) VALUES (?, ?, ?)",
                         (completion_datetime, series_id, basal_amt)
                     )
                     conn.commit()

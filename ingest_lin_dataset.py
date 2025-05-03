@@ -2,6 +2,7 @@ import csv
 import sqlite3
 import os
 from pathlib import Path
+from datetime import datetime
 
 def process_csv_file(file_path, series_id, conn):
     """Process CSV file and insert glucose data into SQLite database."""
@@ -42,17 +43,16 @@ def process_glucose_row(row, header, series_id, conn):
         if not timestamp or not glucose_value:
             return
             
-        # Convert date format from "d/m/YYYY H:MM" to ISO format "YYYY-MM-DDTHH:MM"
-        day, month, year_time = timestamp.split('/')
-        year, time = year_time.split(' ')
-        iso_timestamp = f"20{year}-{month.zfill(2)}-{day.zfill(2)}T{time}"
+        # Convert date format from "d/m/YYYY H:MM" to ISO format "YYYY-MM-DDTHH:MM:SS"
+        dt = datetime.strptime(timestamp, "%m/%d/%Y %H:%M")
+        iso_timestamp = dt.isoformat()
         
         # Convert glucose from mmol/L to mg/dL
         try:
             glucose_mgdl = round(float(glucose_value) * 18.018, 1)
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO cgm_data (datetime, series_id, blood_glucose) VALUES (?, ?, ?)",
                 (iso_timestamp, series_id, glucose_mgdl)
             )
             conn.commit()
